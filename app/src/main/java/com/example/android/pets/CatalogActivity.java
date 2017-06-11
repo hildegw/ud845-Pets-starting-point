@@ -31,8 +31,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import data.PetContract;
-import data.PetDbHelper;
+import com.example.android.pets.data.PetContract;
+import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -87,12 +87,12 @@ public class CatalogActivity extends AppCompatActivity {
         String[] projection = {PetContract.PetEntry._ID,
                 PetContract.PetEntry.COLUMN_PET_NAME, PetContract.PetEntry.COLUMN_PET_BREED,
                 PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.COLUMN_PET_WEIGHT};
-        //Get Cursor object containing the data
+        //Get Cursor object containing the com.example.android.pets.data
         Cursor cursor = petsDb.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
-        //identify TextView to show DB data
+        //identify TextView to show DB com.example.android.pets.data
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
         try {
-            //Read out all data
+            //Read out all com.example.android.pets.data
             List itemIds = new ArrayList<>();
             while(cursor.moveToNext()) {
                 int currentId = cursor.getInt(cursor.getColumnIndex(PetContract.PetEntry._ID));
@@ -121,7 +121,7 @@ public class CatalogActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
-            // Respond to a click on the "Insert dummy data" menu option
+            // Respond to a click on the "Insert dummy com.example.android.pets.data" menu option
             case R.id.action_insert_dummy_data:
                 insertDummyPet();
                 displayDatabaseInfo();      //todo remove

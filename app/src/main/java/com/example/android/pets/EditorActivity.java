@@ -31,8 +31,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import data.PetContract;
-import data.PetDbHelper;
+import com.example.android.pets.data.PetContract;
+import com.example.android.pets.data.PetDbHelper;
 
 import static java.lang.String.valueOf;
 
@@ -135,7 +135,7 @@ public class EditorActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    //add the pet data entered to the DB
+    //add the pet com.example.android.pets.data entered to the DB
     private void insertPet() {
         //open writable DB instance
         PetDbHelper mPetDbHelper = new PetDbHelper(this);
