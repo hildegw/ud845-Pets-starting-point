@@ -17,7 +17,6 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -26,10 +25,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
@@ -62,7 +57,7 @@ public class CatalogActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        displayDatabaseInfo();
+        //displayDatabaseInfo();
     }
 
     private void insertDummyPet() {
@@ -80,7 +75,9 @@ public class CatalogActivity extends AppCompatActivity {
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
      */
-    private void displayDatabaseInfo() {
+
+    /*now handled by PetProvider class
+     private void displayDatabaseInfo() {
         //get readable DB instance
         SQLiteDatabase petsDb = mPetDbHelper.getReadableDatabase();
         //define projection to query DB, here: all columns
@@ -89,6 +86,7 @@ public class CatalogActivity extends AppCompatActivity {
                 PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.COLUMN_PET_WEIGHT};
         //Get Cursor object containing the com.example.android.pets.data
         Cursor cursor = petsDb.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+
         //identify TextView to show DB com.example.android.pets.data
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
         try {
@@ -107,7 +105,7 @@ public class CatalogActivity extends AppCompatActivity {
             // Always close the cursor when you're done reading from it. This releases all its resources and makes it invalid.
             cursor.close();
         }
-    }
+    }*/
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -124,7 +122,7 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy com.example.android.pets.data" menu option
             case R.id.action_insert_dummy_data:
                 insertDummyPet();
-                displayDatabaseInfo();      //todo remove
+                //displayDatabaseInfo();      //todo remove
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:

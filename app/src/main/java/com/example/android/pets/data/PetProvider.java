@@ -1,9 +1,11 @@
 package com.example.android.pets.data;
 
 import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 /**
@@ -44,18 +46,30 @@ public class PetProvider extends ContentProvider {
     @Override
     // Implements ContentProvider.query()
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+        //get readable DB
+        SQLiteDatabase database = mPetDbHelper.getReadableDatabase();
+        Cursor cursor;
+        // select all columns for projection - todo: not sure if this goes into Catalog Activity
+        projection = new String[] {PetContract.PetEntry._ID,
+                PetContract.PetEntry.COLUMN_PET_NAME, PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.COLUMN_PET_WEIGHT};
+
         //match content URIs
         switch (sUriMatcher.match(uri)) {
             case PETS:
-                //// TODO: 6/10/17
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
                 break;
             case PET_ID:
-                //// TODO: 6/10/17
+                // select just one row with _ID
+                selection = PetContract.PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);                break;
                 break;
             default:
                 //no match found
+                throw  new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
-        return null;
+        return cursor;
     }
 
 
