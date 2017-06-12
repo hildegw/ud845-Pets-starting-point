@@ -16,7 +16,7 @@
 package com.example.android.pets;
 
 import android.content.ContentValues;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -32,7 +32,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
-import com.example.android.pets.data.PetDbHelper;
 
 import static java.lang.String.valueOf;
 
@@ -137,10 +136,6 @@ public class EditorActivity extends AppCompatActivity {
 
     //add the pet com.example.android.pets.data entered to the DB
     private void insertPet() {
-        //open writable DB instance
-        PetDbHelper mPetDbHelper = new PetDbHelper(this);
-        SQLiteDatabase petsDb = mPetDbHelper.getWritableDatabase();
-
         //get user input, Gender is already available via Spinner method  todo: check input
         String petName = mNameEditText.getText().toString().trim();
         Log.i("name", petName);
@@ -149,25 +144,25 @@ public class EditorActivity extends AppCompatActivity {
         int weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
         Log.i("name", valueOf(weight));
 
-
         // Create a new map of values from user input and insert into DB
-        ContentValues values = new ContentValues();
-        values.put(PetContract.PetEntry.COLUMN_PET_NAME, petName);
-        values.put(PetContract.PetEntry.COLUMN_PET_BREED, breed);
-        values.put(PetContract.PetEntry.COLUMN_PET_GENDER, mGender);
-        values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, weight);
-        long newRowId = petsDb.insert(PetContract.PetEntry.TABLE_NAME, null, values); //insert and return new row ID
-        Log.v(LOG_TAG, "new row ID " + newRowId + petName + breed + mGender + weight); //todo remove
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_NAME, petName);
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_BREED, breed);
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_GENDER, mGender);
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, weight);
+
+        //call Content Resolver with Content URI and the content values entered by user
+        Uri mNewUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, contentValues);
 
         // Show a toast message depending on whether or not the insertion was successful
-        if (newRowId == -1) {
-            // If the row ID is -1, then there was an error with insertion.
-            Toast.makeText(this, "Error with saving pet", Toast.LENGTH_SHORT).show();
+        if (mNewUri == null) {
+            // If the new content URI is null, then there was an error with insertion.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
+                    Toast.LENGTH_SHORT).show();
         } else {
-            // Otherwise, the insertion was successful and we can display a toast with the row ID.
-            Toast.makeText(this, "Pet saved with row id: " + newRowId, Toast.LENGTH_SHORT).show();
+            // Otherwise, the insertion was successful and we can display a toast.
+            Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                    Toast.LENGTH_SHORT).show();
         }
-
     }
-
 }

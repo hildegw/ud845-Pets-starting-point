@@ -17,17 +17,21 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Displays list of pets that were entered and stored in the app.
@@ -61,14 +65,13 @@ public class CatalogActivity extends AppCompatActivity {
     }
 
     private void insertDummyPet() {
-        SQLiteDatabase petsDb = mPetDbHelper.getWritableDatabase(); //DB write mode
-        ContentValues values = new ContentValues();            // Create a new map of values, where column names are the keys
-        values.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
-        values.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
-        values.put(PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.GENDER_MALE);
-        values.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
-        long newRowId = petsDb.insert(PetContract.PetEntry.TABLE_NAME, null, values); //insert and return new row ID
-        Log.v(LOG_TAG, "new dummy " + newRowId); //todo remove
+        ContentValues contentValues = new ContentValues();            // Create a new map of values, where column names are the keys
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_NAME, "Toto");
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_BREED, "Terrier");
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.GENDER_MALE);
+        contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
+        //call Content Resolver with Content URI and the content values entered by user
+        Uri mNewUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, contentValues);
     }
 
     /**
@@ -76,16 +79,17 @@ public class CatalogActivity extends AppCompatActivity {
      * the pets database.
      */
 
-    /*now handled by PetProvider class
      private void displayDatabaseInfo() {
-        //get readable DB instance
-        SQLiteDatabase petsDb = mPetDbHelper.getReadableDatabase();
-        //define projection to query DB, here: all columns
+
+         //define projection to query DB, here: all columns
         String[] projection = {PetContract.PetEntry._ID,
-                PetContract.PetEntry.COLUMN_PET_NAME, PetContract.PetEntry.COLUMN_PET_BREED,
-                PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.COLUMN_PET_WEIGHT};
-        //Get Cursor object containing the com.example.android.pets.data
-        Cursor cursor = petsDb.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+                PetContract.PetEntry.COLUMN_PET_NAME,
+                PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_GENDER,
+                PetContract.PetEntry.COLUMN_PET_WEIGHT};
+
+         //Call Content Resolver to get Cursor object back (via PetProvider)
+        Cursor cursor = getContentResolver().query(PetContract.PetEntry.CONTENT_URI, projection, null, null, null);
 
         //identify TextView to show DB com.example.android.pets.data
         TextView displayView = (TextView) findViewById(R.id.text_view_pet);
@@ -105,7 +109,7 @@ public class CatalogActivity extends AppCompatActivity {
             // Always close the cursor when you're done reading from it. This releases all its resources and makes it invalid.
             cursor.close();
         }
-    }*/
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -7,6 +7,9 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.Log;
+
+import static android.R.attr.id;
 
 /**
  * {@link ContentProvider} for Pets app.
@@ -49,10 +52,6 @@ public class PetProvider extends ContentProvider {
         //get readable DB
         SQLiteDatabase database = mPetDbHelper.getReadableDatabase();
         Cursor cursor;
-        // select all columns for projection - todo: not sure if this goes into Catalog Activity
-        projection = new String[] {PetContract.PetEntry._ID,
-                PetContract.PetEntry.COLUMN_PET_NAME, PetContract.PetEntry.COLUMN_PET_BREED,
-                PetContract.PetEntry.COLUMN_PET_GENDER, PetContract.PetEntry.COLUMN_PET_WEIGHT};
 
         //match content URIs
         switch (sUriMatcher.match(uri)) {
@@ -63,7 +62,7 @@ public class PetProvider extends ContentProvider {
                 // select just one row with _ID
                 selection = PetContract.PetEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
-                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);                break;
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
                 break;
             default:
                 //no match found
@@ -80,8 +79,27 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
-        return null;
+        //get writable DB
+        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
+
+        //match content URIs
+        switch (sUriMatcher.match(uri)) {
+            case PETS:
+                //insert new pet data and return row ID
+                long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues);
+                //error info
+                if (id == -1) {
+                    Log.e(LOG_TAG, "Failed to insert row for " + uri);
+                    return null;
+                }
+                //then return URI based on Content URI plus new row ID, i.e. the URI to reach the new pet entry
+                return ContentUris.withAppendedId(uri, newRowId);
+            default:
+                //no match found
+                throw new IllegalArgumentException("Cannot insert with unknown URI " + uri);
+        }
     }
+
 
     /**
      * Updates the com.example.android.pets.data at the given selection and selection arguments, with the new ContentValues.
