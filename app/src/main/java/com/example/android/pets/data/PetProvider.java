@@ -9,8 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
-import static android.R.attr.id;
-
 /**
  * {@link ContentProvider} for Pets app.
  */
@@ -80,22 +78,16 @@ public class PetProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
         //check input before inserting into DB
-        String name = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_NAME);
+        if(contentValues.containsKey(PetContract.PetEntry.COLUMN_PET_NAME)) {
+            String name = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_NAME);
+        } else {
+            throw new IllegalArgumentException("Pet requires a name");
+        }
         String breed = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_BREED);
         int gender = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_GENDER);
         int weight = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_WEIGHT);
-        if (name == null) {
-            throw new IllegalArgumentException("Pet requires a name");
-        }
-        if (weight < -1 || weight > 999) {                      //todo: deal with -1 value and with exceptions
-            contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, -1);
-            throw new IllegalArgumentException("Check pet weight input");
-        }
 
-        if ( gender > 2 || gender < 0) {
-            contentValues.put(PetContract.PetEntry.COLUMN_PET_GENDER, 0);
-        }
-
+        //todo: deal with -1 value for weight and with exceptions
 
         //get writable DB
         SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
@@ -104,9 +96,9 @@ public class PetProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case PETS:
                 //insert new pet data and return row ID
-                long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues);
+                long newRowId = db.insert(PetContract.PetEntry.TABLE_NAME, null, contentValues); //i.e. table, all columns, content values
                 //error info
-                if (id == -1) {
+                if (newRowId == -1) {
                     Log.e(LOG_TAG, "Failed to insert row for " + uri);
                     return null;
                 }
@@ -124,7 +116,46 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
-        return 0;
+        //todo: implement UI and adapt these values accordingly
+        String name = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_NAME);
+        String breed = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_BREED);
+        int gender = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_GENDER);
+        int weight = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_WEIGHT);
+
+        //todo: deal with -1 value for weight and with exceptions
+
+        //get writable DB
+        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
+        //initiate return value for update method
+        int numberRowsUpdated;
+
+        //match content URIs
+        switch (sUriMatcher.match(uri)) {
+            case PETS:
+                //update more the one row
+                numberRowsUpdated = db.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
+                //error info
+                if (numberRowsUpdated == 0) {
+                    Log.e(LOG_TAG, "Failed to update row for " + uri);
+                    return 0;
+                }
+                return numberRowsUpdated;
+            case PET_ID:
+                //find data entry matching the row ID provided by URI
+                selection = PetContract.PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                //insert updated pet data, returns the number of rows that were updated
+                numberRowsUpdated = db.update(PetContract.PetEntry.TABLE_NAME, contentValues, selection,selectionArgs); //i.e. table, content values, where-String, where-Args
+                //error info
+                if (numberRowsUpdated == 0) {
+                    Log.e(LOG_TAG, "Failed to update row for " + uri);
+                    return 0;
+                }
+                return numberRowsUpdated;
+            default:
+                //no match found
+                throw new IllegalArgumentException("Cannot update with unknown URI " + uri);
+        }
     }
 
     /**
@@ -132,7 +163,38 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        return 0;
+        //get writable DB
+        SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
+        //initiate return value for update method
+        int numberRowsDeleted;
+
+        //match content URIs
+        switch (sUriMatcher.match(uri)) {
+            case PETS:
+                //update more the one row
+                numberRowsDeleted = db.delete(PetContract.PetEntry.TABLE_NAME, selection, selectionArgs);
+                //error info
+                if (numberRowsDeleted == 0) {
+                    Log.e(LOG_TAG, "Failed to delete row for " + uri);
+                    return 0;
+                }
+                return numberRowsDeleted;
+            case PET_ID:
+                //find data entry matching the row ID provided by URI
+                selection = PetContract.PetEntry._ID + "=?";
+                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                //insert updated pet data, returns the number of rows that were updated
+                numberRowsDeleted = db.delete(PetContract.PetEntry.TABLE_NAME, selection,selectionArgs); //i.e. table, content values, where-String, where-Args
+                //error info
+                if (numberRowsDeleted == 0) {
+                    Log.e(LOG_TAG, "Failed to delete row for " + uri);
+                    return 0;
+                }
+                return numberRowsDeleted;
+            default:
+                //no match found
+                throw new IllegalArgumentException("Cannot delete with unknown URI " + uri);
+        }
     }
 
     /**
@@ -140,6 +202,15 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public String getType(Uri uri) {
-        return null;
+        //match content URIs
+        switch (sUriMatcher.match(uri)) {
+            case PETS:
+                return PetContract.PetEntry.CONTENT_LIST_TYPE;
+            case PET_ID:
+                return PetContract.PetEntry.CONTENT_ITEM_TYPE;
+            default:
+                //no match found
+                throw new IllegalArgumentException("Unknown URI " + uri);
+        }
     }
 }

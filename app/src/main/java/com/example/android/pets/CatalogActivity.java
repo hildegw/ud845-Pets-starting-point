@@ -26,6 +26,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
@@ -72,13 +73,14 @@ public class CatalogActivity extends AppCompatActivity {
         contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, 7);
         //call Content Resolver with Content URI and the content values entered by user
         Uri mNewUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, contentValues);
+        Toast.makeText(this, getString(R.string.editor_insert_pet_successful),
+                Toast.LENGTH_SHORT).show();
     }
 
     /**
      * Temporary helper method to display information in the onscreen TextView about the state of
      * the pets database.
      */
-
      private void displayDatabaseInfo() {
 
          //define projection to query DB, here: all columns
@@ -126,11 +128,12 @@ public class CatalogActivity extends AppCompatActivity {
             // Respond to a click on the "Insert dummy com.example.android.pets.data" menu option
             case R.id.action_insert_dummy_data:
                 insertDummyPet();
-                //displayDatabaseInfo();      //todo remove
+                displayDatabaseInfo();      //todo remove
                 return true;
             // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
-                // Do nothing for now
+                //call Content Resolver to delete DB
+                int numberRowsDeleted = getContentResolver().delete(PetContract.PetEntry.CONTENT_URI, null, null);
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -117,9 +117,9 @@ public class EditorActivity extends AppCompatActivity {
             case R.id.action_save:
                 //check, if pet name was entered, if not, stay in Editor
                 if (mNameEditText.length() == 0) {
-                    Toast.makeText(this, "Please enter pet's name", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, getString(R.string.enter_pet_name), Toast.LENGTH_LONG).show();
                 } else {
-                    insertPet(); //todo cannot finish with missing pet name input!
+                    insertPet();
                     finish();
                     return true;
                 }
@@ -170,4 +170,7 @@ public class EditorActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
         }
     }
+
+    //todo: UI for updating data, call PetProvider update method and check return value = number of rows updated
+
 }
