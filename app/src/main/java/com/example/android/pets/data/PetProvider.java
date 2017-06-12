@@ -79,6 +79,24 @@ public class PetProvider extends ContentProvider {
      */
     @Override
     public Uri insert(Uri uri, ContentValues contentValues) {
+        //check input before inserting into DB
+        String name = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_NAME);
+        String breed = contentValues.getAsString(PetContract.PetEntry.COLUMN_PET_BREED);
+        int gender = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_GENDER);
+        int weight = contentValues.getAsInteger(PetContract.PetEntry.COLUMN_PET_WEIGHT);
+        if (name == null) {
+            throw new IllegalArgumentException("Pet requires a name");
+        }
+        if (weight < -1 || weight > 999) {                      //todo: deal with -1 value and with exceptions
+            contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, -1);
+            throw new IllegalArgumentException("Check pet weight input");
+        }
+
+        if ( gender > 2 || gender < 0) {
+            contentValues.put(PetContract.PetEntry.COLUMN_PET_GENDER, 0);
+        }
+
+
         //get writable DB
         SQLiteDatabase db = mPetDbHelper.getWritableDatabase();
 

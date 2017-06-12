@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,8 +31,6 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
-
-import static java.lang.String.valueOf;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -118,9 +115,14 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                insertPet();
-                finish();
-                return true;
+                //check, if pet name was entered, if not, stay in Editor
+                if (mNameEditText.length() == 0) {
+                    Toast.makeText(this, "Please enter pet's name", Toast.LENGTH_LONG).show();
+                } else {
+                    insertPet(); //todo cannot finish with missing pet name input!
+                    finish();
+                    return true;
+                }
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
                 // Do nothing for now
@@ -136,13 +138,16 @@ public class EditorActivity extends AppCompatActivity {
 
     //add the pet com.example.android.pets.data entered to the DB
     private void insertPet() {
-        //get user input, Gender is already available via Spinner method  todo: check input
+        //get user input, Gender is already available via Spinner method
         String petName = mNameEditText.getText().toString().trim();
-        Log.i("name", petName);
         String breed = mBreedEditText.getText().toString().trim();
-        Log.i("name", breed);
-        int weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
-        Log.i("name", valueOf(weight));
+        //set weight to -1 if user did not enter weight
+        int weight;
+        if (mWeightEditText.length() > 0) {
+            weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+        } else {
+            weight = -1;
+        }
 
         // Create a new map of values from user input and insert into DB
         ContentValues contentValues = new ContentValues();
