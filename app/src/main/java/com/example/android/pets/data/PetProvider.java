@@ -53,12 +53,16 @@ public class PetProvider extends ContentProvider {
         //match content URIs
         switch (sUriMatcher.match(uri)) {
             case PETS:
-                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, null, null, null, null, null);
+                Log.i("Table name ", PetContract.PetEntry.TABLE_NAME);
+                Log.i("uri in PetProv ", uri.toString());
+                Log.i("Content URI", PetContract.PetEntry.CONTENT_URI.toString());
+                if(selection != null) {Log.i("selection PetProvider ", selection);};
+                cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
                 break;
             case PET_ID:
                 // select just one row with _ID
-                selection = PetContract.PetEntry._ID + "=?";
-                selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                //selection = PetContract.PetEntry._ID + "=?";
+                //selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
                 cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
                 //notify Content Resolver to watch for data changes
                 break;

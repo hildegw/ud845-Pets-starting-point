@@ -28,6 +28,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -129,6 +130,15 @@ public class CatalogActivity extends AppCompatActivity implements LoaderManager.
         listView.setAdapter(petCursorAdapter);
         //display current data
         petCursorAdapter.swapCursor(cursor);
+        //todo when a list item is clicked, populate the Editor with the pet data to be edited
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
+                Intent intent = new Intent(CatalogActivity.this, EditorActivity.class);
+                intent.putExtra("Pet-Id", id);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

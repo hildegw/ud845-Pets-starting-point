@@ -15,12 +15,18 @@
  */
 package com.example.android.pets;
 
+import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.CursorLoader;
+import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,10 +38,12 @@ import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 
+import static java.lang.String.valueOf;
+
 /**
  * Allows user to create a new pet or edit an existing one.
  */
-public class EditorActivity extends AppCompatActivity {
+public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String LOG_TAG = EditorActivity.class.getName();
 
@@ -44,6 +52,8 @@ public class EditorActivity extends AppCompatActivity {
     private EditText mBreedEditText;
     private EditText mWeightEditText;
     private Spinner mGenderSpinner;
+    private static final int PET_LOADER = 0;
+
 
     //Pet Gender, see contract, 1= female, 2 = male, 0 = unknown
     private int mGender = PetContract.PetEntry.GENDER_UNKNOWN;
@@ -58,8 +68,10 @@ public class EditorActivity extends AppCompatActivity {
         mBreedEditText = (EditText) findViewById(R.id.edit_pet_breed);
         mWeightEditText = (EditText) findViewById(R.id.edit_pet_weight);
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
-
         setupSpinner();
+
+        //start Loader
+        getLoaderManager().initLoader(PET_LOADER, null, this);
     }
 
     /**
@@ -171,6 +183,52 @@ public class EditorActivity extends AppCompatActivity {
         }
     }
 
-    //todo: UI for updating data, call PetProvider update method and check return value = number of rows updated
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //define projection to query DB, here: all columns
+        String[] projection = {PetContract.PetEntry._ID,
+                PetContract.PetEntry.COLUMN_PET_NAME,
+                PetContract.PetEntry.COLUMN_PET_BREED,
+                PetContract.PetEntry.COLUMN_PET_GENDER,
+                PetContract.PetEntry.COLUMN_PET_WEIGHT};
+
+        //provide data for pet to be edited, if available
+        String selection = null;
+        String[] selectionArgs = new String[] {"1"};
+        Uri uri = PetContract.PetEntry.CONTENT_URI;
+
+        if( getIntent().getExtras() != null) {
+            long petId = getIntent().getLongExtra("Pet-Id", 0);
+            Log.i("Intent = ", valueOf(petId));
+            uri = ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, petId);
+            //uri = Uri.parse(PetContract.PetEntry.CONTENT_URI petId);
+            Log.i("lesson ", String.valueOf(ContentUris.parseId(uri)));
+            Log.i("uri in Editor: Intent ", valueOf(uri));
+            selection = PetContract.PetEntry._ID + "=?";
+            selectionArgs = new String[]{valueOf(petId)};
+            Log.i("Args0 ", selectionArgs[0]);
+        }
+        return new CursorLoader(this, uri, projection, selection, selectionArgs, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+
+        if (cursor.moveToFirst()) {
+            // Attach cursor information to populate the EditText fields
+            Log.i("# ", cursor.getString(cursor.getColumnIndex(PetContract.PetEntry._ID)));
+            mNameEditText.setText(cursor.getString(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME)));
+            mBreedEditText.setText(cursor.getString(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED)));
+            mWeightEditText.setText(valueOf(cursor.getInt(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_WEIGHT))));
+            mGenderSpinner.setSelection(cursor.getInt(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_GENDER)));
+            cursor.close();
+        }
+        //todo inform about change, clean-up
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        //no clean-up required, no Adapter used
+    }
 
 }
