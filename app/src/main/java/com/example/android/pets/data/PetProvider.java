@@ -50,7 +50,6 @@ public class PetProvider extends ContentProvider {
         //get readable DB
         SQLiteDatabase database = mPetDbHelper.getReadableDatabase();
         Cursor cursor;
-
         //match content URIs
         switch (sUriMatcher.match(uri)) {
             case PETS:
@@ -61,11 +60,14 @@ public class PetProvider extends ContentProvider {
                 selection = PetContract.PetEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
                 cursor = database.query(PetContract.PetEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, null);
+                //notify Content Resolver to watch for data changes
                 break;
             default:
                 //no match found
-                throw  new IllegalArgumentException("Cannot query unknown URI " + uri);
+                throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
+        //notify Content Resolver to watch for data changes
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -102,6 +104,8 @@ public class PetProvider extends ContentProvider {
                     Log.e(LOG_TAG, "Failed to insert row for " + uri);
                     return null;
                 }
+                //notify Content Resolver about change
+                getContext().getContentResolver().notifyChange(uri, null);
                 //then return URI based on Content URI plus new row ID, i.e. the URI to reach the new pet entry
                 return ContentUris.withAppendedId(uri, newRowId);
             default:
@@ -111,9 +115,7 @@ public class PetProvider extends ContentProvider {
     }
 
 
-    /**
-     * Updates the com.example.android.pets.data at the given selection and selection arguments, with the new ContentValues.
-     */
+    //Not yet in use by UI >>> Todo
     @Override
     public int update(Uri uri, ContentValues contentValues, String selection, String[] selectionArgs) {
         //todo: implement UI and adapt these values accordingly
@@ -139,6 +141,7 @@ public class PetProvider extends ContentProvider {
                     Log.e(LOG_TAG, "Failed to update row for " + uri);
                     return 0;
                 }
+                getContext().getContentResolver().notifyChange(uri, null);
                 return numberRowsUpdated;
             case PET_ID:
                 //find data entry matching the row ID provided by URI
@@ -151,6 +154,7 @@ public class PetProvider extends ContentProvider {
                     Log.e(LOG_TAG, "Failed to update row for " + uri);
                     return 0;
                 }
+                getContext().getContentResolver().notifyChange(uri, null);
                 return numberRowsUpdated;
             default:
                 //no match found
@@ -178,6 +182,7 @@ public class PetProvider extends ContentProvider {
                     Log.e(LOG_TAG, "Failed to delete row for " + uri);
                     return 0;
                 }
+                getContext().getContentResolver().notifyChange(uri, null);
                 return numberRowsDeleted;
             case PET_ID:
                 //find data entry matching the row ID provided by URI
@@ -190,6 +195,7 @@ public class PetProvider extends ContentProvider {
                     Log.e(LOG_TAG, "Failed to delete row for " + uri);
                     return 0;
                 }
+                getContext().getContentResolver().notifyChange(uri, null);
                 return numberRowsDeleted;
             default:
                 //no match found
