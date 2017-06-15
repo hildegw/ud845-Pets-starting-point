@@ -70,8 +70,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mGenderSpinner = (Spinner) findViewById(R.id.spinner_gender);
         setupSpinner();
 
-        //start Loader
-        getLoaderManager().initLoader(PET_LOADER, null, this);
+        //if Intent is to edit: set correct title and start Loader to fetch pet to be edited from DB
+        if( getIntent().getExtras() != null) {
+            setTitle(getString(R.string.editor_activity_title_edit_pet));
+            getLoaderManager().initLoader(PET_LOADER, null, this);
+        }
     }
 
     /**
@@ -137,7 +140,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 }
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                deletePet();
+                finish();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -146,6 +150,30 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    //delete pet open in Editor
+    private void deletePet() {
+        int petDeleted = -1;
+        if (getIntent().getExtras() != null) {
+            long petId = getIntent().getLongExtra("Pet-Id", 0);
+            Log.i("petId ", valueOf(petId));
+            Uri uri = ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, petId);
+            String selection = null;
+            String[] selectionArgs = new String[]{"1"};
+            petDeleted = getContentResolver().delete(uri, selection, selectionArgs);
+            Log.i("delete ", valueOf(petDeleted));
+        }
+        // Show a toast message depending on whether or not the delete was successful
+        if (petDeleted != 1) {
+            // If the new content URI is null, then there was an error with insertion.
+            Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            // Otherwise, the insertion was successful and we can display a toast.
+            Toast.makeText(this, getString(R.string.editor_delete_pet),
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     //add the pet com.example.android.pets.data entered to the DB
@@ -169,10 +197,23 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         contentValues.put(PetContract.PetEntry.COLUMN_PET_WEIGHT, weight);
 
         //call Content Resolver with Content URI and the content values entered by user
-        Uri mNewUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, contentValues);
+        int numberRowsUpdated  = 0;
+        Uri mNewUri = null;
+                //in case of pet edit
+        if (getIntent().getExtras() != null) {
+            long petId = getIntent().getLongExtra("Pet-Id", 0);
+            Uri uri = ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, petId);
+            String selection = null;
+            String[] selectionArgs = new String[] {"1"};
+            numberRowsUpdated = getContentResolver().update(uri, contentValues, selection, selectionArgs);
+            Log.i("update ", valueOf(numberRowsUpdated));
+        //in case of new pet
+        } else {
+            mNewUri = getContentResolver().insert(PetContract.PetEntry.CONTENT_URI, contentValues);
+        }
 
         // Show a toast message depending on whether or not the insertion was successful
-        if (mNewUri == null) {
+        if (mNewUri == null && numberRowsUpdated == 0) {
             // If the new content URI is null, then there was an error with insertion.
             Toast.makeText(this, getString(R.string.editor_insert_pet_failed),
                     Toast.LENGTH_SHORT).show();
@@ -199,14 +240,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         if( getIntent().getExtras() != null) {
             long petId = getIntent().getLongExtra("Pet-Id", 0);
-            Log.i("Intent = ", valueOf(petId));
             uri = ContentUris.withAppendedId(PetContract.PetEntry.CONTENT_URI, petId);
-            //uri = Uri.parse(PetContract.PetEntry.CONTENT_URI petId);
-            Log.i("lesson ", String.valueOf(ContentUris.parseId(uri)));
-            Log.i("uri in Editor: Intent ", valueOf(uri));
-            selection = PetContract.PetEntry._ID + "=?";
-            selectionArgs = new String[]{valueOf(petId)};
-            Log.i("Args0 ", selectionArgs[0]);
         }
         return new CursorLoader(this, uri, projection, selection, selectionArgs, null);
     }
@@ -216,7 +250,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         if (cursor.moveToFirst()) {
             // Attach cursor information to populate the EditText fields
-            Log.i("# ", cursor.getString(cursor.getColumnIndex(PetContract.PetEntry._ID)));
             mNameEditText.setText(cursor.getString(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_NAME)));
             mBreedEditText.setText(cursor.getString(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_BREED)));
             mWeightEditText.setText(valueOf(cursor.getInt(cursor.getColumnIndex(PetContract.PetEntry.COLUMN_PET_WEIGHT))));

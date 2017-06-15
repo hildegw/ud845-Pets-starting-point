@@ -20,8 +20,13 @@
     <!-- Label for overflow menu option that deletes all pet com.example.android.pets.data in the app [CHAR LIMIT=20] -->
     <string name="action_delete_all_entries">Delete All Pets</string>
 
-    <!-- Title for the activity to add a new pet [CHAR LIMIT=20] -->
+    <!-- Delete edited pet -->
+    <string name="editor_delete_pet">Pet was deleted</string>
+    <string name="editor_delete_pet_failed">Pet could not be deleted</string>
+
+    <!-- Title for the activity to add a new pet [CHAR LIMIT=20] and to edit pat-->
     <string name="editor_activity_title_new_pet">Add a Pet</string>
+    <string name="editor_activity_title_edit_pet">Edit a Pet</string>
 
     <!-- Label for editor menu option to save pet and leave editor [CHAR LIMIT=20] -->
     <string name="action_save">Save</string>
